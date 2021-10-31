@@ -9,3 +9,4 @@ venv/
 *.dylib
 *.test
 *.out
+twitch-stream-monitor
