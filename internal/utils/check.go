@@ -30,6 +30,22 @@ func CheckDirIsWritable(path string) error {
 	return file.Close()
 }
 
+// Check if path is a file and is readablr.
+//
+// Returns nil on success.
+func CheckFileIsReadable(path string) error {
+	f, err := os.Open(path)
+
+	if err != nil {
+		return err
+	}
+
+	buff := make([]byte, 16)
+	_, err = f.Read(buff)
+
+	return err
+}
+
 // Check if executable at path exists and is executable.
 //
 // Calls path with provided args. Returns nil on success.

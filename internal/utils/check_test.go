@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"os"
+	"path"
 	"testing"
 	"time"
 )
@@ -43,6 +44,30 @@ func TestCheckDirIsWritableError(t *testing.T) {
 	}()
 
 	err = CheckDirIsWritable(dir)
+
+	if err == nil {
+		t.Errorf("err: nil; expected: error")
+	}
+}
+
+func TestCheckFileIsReadableOK(t *testing.T) {
+	f := path.Join(t.TempDir(), "test")
+	err := ioutil.WriteFile(f, []byte("test"), 0644)
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = CheckFileIsReadable(f)
+
+	if err != nil {
+		t.Errorf("err: %v; expected: nil", err)
+	}
+}
+
+func TestCheckFileIsReadableError(t *testing.T) {
+	err := CheckFileIsReadable(path.Join(t.TempDir(), "test"))
 
 	if err == nil {
 		t.Errorf("err: nil; expected: error")
