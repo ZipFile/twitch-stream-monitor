@@ -12,6 +12,7 @@ def noop(_, __):
 def main():
     parser = ArgumentParser(description="Simulate Streamlink CLI.")
 
+    parser.add_argument("--config")
     parser.add_argument("--logfile")
     parser.add_argument("--twitch-disable-ads", action="store_true")
     parser.add_argument("-o", "--output", required=True)
@@ -35,6 +36,10 @@ def main():
     if not args.twitch_disable_ads:
         print("duh")
         return 4
+
+    if args.config:
+        with open(args.config, "rt", errors="strict") as f:
+            print(f.read())
 
     if args.logfile:
         with open(args.logfile, "wt") as f:

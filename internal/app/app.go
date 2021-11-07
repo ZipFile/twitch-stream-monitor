@@ -243,6 +243,7 @@ func (app *App) initStreamlinkEventHandler() error {
 		app.Config.Streamlink.Path,
 		app.Config.Streamlink.FileDir,
 		app.Config.Streamlink.LogDir,
+		app.Config.Streamlink.ConfigPath,
 		app.Config.Streamlink.KillTimeout,
 		*app.Log,
 	)

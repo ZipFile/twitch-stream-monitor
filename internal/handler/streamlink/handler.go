@@ -18,6 +18,7 @@ type Handler struct {
 	Path        string
 	FileDir     string
 	LogDir      string
+	Config      string
 	Log         zerolog.Logger
 	KillTimeout time.Duration
 }
@@ -30,9 +31,10 @@ var ErrBadKillTimeout = errors.New("0 or negative kill timeout is not supported"
 // * path: Location of the streamlink executable. Keep empty to use default.
 // * fileDir: Location where to store streams. Keep empty to use current working dir.
 // * logDir: Location where to store stream recording logs. Keep empty to use current working dir.
+// * config: Config file to use instead of globally default.
 // * killTimeout: Time to wait for process to gracefully shutdown before kiling.
 // * log: Logger instance.
-func New(path, fileDir, logDir string, killTimeout time.Duration, log zerolog.Logger) (tsm.TwitchStreamOnlineEventHandler, error) {
+func New(path, fileDir, logDir, config string, killTimeout time.Duration, log zerolog.Logger) (tsm.TwitchStreamOnlineEventHandler, error) {
 	if killTimeout <= 0 {
 		return nil, ErrBadKillTimeout
 	}
@@ -41,6 +43,7 @@ func New(path, fileDir, logDir string, killTimeout time.Duration, log zerolog.Lo
 		Path:        utils.OrStr(path, "streamlink"),
 		FileDir:     utils.OrStr(fileDir, "."),
 		LogDir:      utils.OrStr(logDir, "."),
+		Config:      config,
 		Log:         log.With().Str("component", "streamlink_handler").Logger(),
 		KillTimeout: killTimeout,
 	}, nil
@@ -67,6 +70,14 @@ func (h *Handler) Check(ctx context.Context) error {
 		}
 	}
 
+	if h.Config != "" {
+		err = utils.CheckFileIsReadable(h.Config)
+
+		if err != nil {
+			return err
+		}
+	}
+
 	return utils.CheckCLI(ctx, h.Path, "--help")
 }
 
@@ -82,18 +93,19 @@ func (h *Handler) Handle(ctx context.Context, event tsm.TwitchStreamOnlineEvent)
 	)
 	streamFilename := baseName + ".mp4"
 	logFilename := baseName + ".log"
-	cmd := exec.CommandContext(
-		killCtx,
-		h.Path,
-		// "--retry-streams", "5",
-		// "--retry-max", "10",
-		// "--retry-open", "3",
+	args := []string{
 		"--logfile", path.Join(h.LogDir, logFilename),
 		"--twitch-disable-ads",
 		fmt.Sprintf("twitch.tv/%s", event.UserLogin),
 		"best",
 		"-o", path.Join(h.FileDir, streamFilename),
-	)
+	}
+
+	if h.Config != "" {
+		args = append(args, "--config", h.Config)
+	}
+
+	cmd := exec.CommandContext(killCtx, h.Path, args...)
 
 	log := h.Log.With().Stringer("cmd", cmd).Logger()
 	exit := make(chan interface{})

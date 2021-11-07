@@ -16,6 +16,7 @@ type StreamlinkConfig struct {
 	Path        string
 	FileDir     string
 	LogDir      string
+	ConfigPath  string
 	KillTimeout time.Duration
 }
 

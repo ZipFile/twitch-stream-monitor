@@ -54,6 +54,7 @@ func TestEnvironLoaderOK(t *testing.T) {
 		"TWITCH_MONITOR_STREAMLINK_PATH":           "/tmp/streamlink",
 		"TWITCH_MONITOR_STREAMLINK_FILE_DIR":       "/tmp/streams",
 		"TWITCH_MONITOR_STREAMLINK_LOG_DIR":        "/tmp/logs",
+		"TWITCH_MONITOR_STREAMLINK_CONFIG":         "/tmp/streamlink.config",
 		"TWITCH_MONITOR_STREAMLINK_KILL_TIMEOUT":   "99s",
 		"TWITCH_MONITOR_LOG_LEVEL":                 "debug",
 		"TWITCH_MONITOR_HTTP_NOTIFICATOR_URL":      "http://localhost:8888/online",

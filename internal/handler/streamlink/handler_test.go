@@ -28,6 +28,7 @@ func TestHandlerNegativeKillTimeout(t *testing.T) {
 		"./fake_streamlink.py",
 		"",
 		"",
+		"",
 		-1*time.Second,
 		zerolog.Nop(),
 	)
@@ -42,6 +43,7 @@ func TestHandlerCheck(t *testing.T) {
 		"./fake_streamlink.py",
 		t.TempDir(),
 		t.TempDir(),
+		"",
 		1*time.Second,
 		zerolog.Nop(),
 	)
@@ -64,6 +66,7 @@ func TestHandlerCheckSameDir(t *testing.T) {
 		"./fake_streamlink.py",
 		dir,
 		dir,
+		"",
 		1*time.Second,
 		zerolog.Nop(),
 	)
@@ -86,6 +89,7 @@ func TestHandlerCheckFailFileDir(t *testing.T) {
 		"./fake_streamlink.py",
 		dir,
 		dir,
+		"",
 		1*time.Second,
 		zerolog.Nop(),
 	)
@@ -107,6 +111,7 @@ func TestHandlerCheckFailLogDir(t *testing.T) {
 		"./fake_streamlink.py",
 		t.TempDir(),
 		path.Join(t.TempDir(), "does not exists"),
+		"",
 		1*time.Second,
 		zerolog.Nop(),
 	)
@@ -123,9 +128,34 @@ func TestHandlerCheckFailLogDir(t *testing.T) {
 	}
 }
 
+func TestHandlerCheckFailConfig(t *testing.T) {
+	dir := t.TempDir()
+	config := path.Join(dir, "missing.config")
+	h, err := New(
+		"./fake_streamlink.py",
+		dir,
+		dir,
+		config,
+		1*time.Second,
+		zerolog.Nop(),
+	)
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = h.Check(context.Background())
+
+	if err == nil {
+		t.Error("err: nil; expected: error")
+	}
+}
+
 func TestHandlerHandleOK(t *testing.T) {
 	fileDir := t.TempDir()
 	logDir := t.TempDir()
+	config := path.Join(t.TempDir(), "test.config")
 	event := tsm.TwitchStreamOnlineEvent{
 		UserID:    "123",
 		UserLogin: "test",
@@ -136,12 +166,21 @@ func TestHandlerHandleOK(t *testing.T) {
 		"./fake_streamlink.py",
 		fileDir,
 		logDir,
+		"",
 		1*time.Second,
 		zerolog.Nop(),
 	)
 
 	if err != nil {
 		t.Error(err)
+		return
+	}
+
+	err = ioutil.WriteFile(config, []byte("loglevel=warning"), 0644)
+
+	if err != nil {
+		t.Error(err)
+		return
 	}
 
 	err = h.Handle(context.Background(), event)
@@ -189,6 +228,7 @@ func TestHandlerHandleGracefulShutdown(t *testing.T) {
 		"./fake_streamlink.py",
 		fileDir,
 		logDir,
+		"",
 		1*time.Second,
 		zerolog.Nop(),
 	)
@@ -225,6 +265,7 @@ func TestHandlerHandleKill(t *testing.T) {
 		"./fake_streamlink.py",
 		fileDir,
 		logDir,
+		"",
 		1*time.Second,
 		zerolog.Nop(),
 	)

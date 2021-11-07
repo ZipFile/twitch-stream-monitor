@@ -88,6 +88,7 @@ func (l *environLoader) Load() (*Config, error) {
 	c.Streamlink.Path = l.LookupEnv("TWITCH_MONITOR_STREAMLINK_PATH")
 	c.Streamlink.FileDir = l.LookupEnv("TWITCH_MONITOR_STREAMLINK_FILE_DIR")
 	c.Streamlink.LogDir = l.LookupEnv("TWITCH_MONITOR_STREAMLINK_LOG_DIR")
+	c.Streamlink.ConfigPath = l.LookupEnv("TWITCH_MONITOR_STREAMLINK_CONFIG")
 	c.Streamlink.KillTimeout, err = l.lookupDuration("TWITCH_MONITOR_STREAMLINK_KILL_TIMEOUT")
 
 	if err != nil {
