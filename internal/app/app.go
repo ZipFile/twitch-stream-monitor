@@ -346,7 +346,13 @@ func (app *App) Monitor() error {
 		ctx,
 		app.EventListener,
 		app.EventHandler,
-		app.Config.BroadcasterUserIDS,
+		monitor.Settings{
+			UserIDs:                  app.Config.BroadcasterUserIDs,
+			KeepExistingSubs:         app.Config.KeepExistingSubs,
+			KeepNewSubs:              app.Config.KeepNewSubs,
+			IgnoreStartupErrors:      app.Config.IgnoreStartupErrors,
+			IgnoreSubscriptionErrors: app.Config.IgnoreSubscriptionErrors,
+		},
 		*app.Log,
 	)
 }

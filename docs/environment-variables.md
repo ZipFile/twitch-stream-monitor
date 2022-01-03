@@ -63,7 +63,45 @@ IDs can be found using direct API query to Twitch:
 curl 'https://api.twitch.tv/helix/users?login=USERNAME' -H 'Client-ID: MY_CLIENT_ID' -H "Authorization: Bearer APP_ACCESS_TOKEN"
 ```
 
-Or using one of the free online services like [streamweasels](https://www.streamweasels.com/support/convert-twitch-username-to-user-id/).
+### TWITCH_MONITOR_KEEP_EXISTING_SUBS
+
+* Required: No
+* Type: bool
+* Default: `false`
+
+Define behavior in case there is already a `stream.online` event subscription present for given broadcaster id.
+
+Delete (`false`) or preserve (`true`) such subscriptions at exit.
+
+### TWITCH_MONITOR_KEEP_NEW_SUBS
+
+* Required: No
+* Type: bool
+* Default: `false`
+
+Define behavior for newly-created `stream.online` event subscriptions.
+
+Delete (`false`) or preserve (`true`) such subscriptions at exit.
+
+### TWITCH_MONITOR_IGNORE_START_ERRORS
+
+* Required: No
+* Type: bool
+* Default: `false`
+
+Start listening for `stream.online` events even if it is known that they won't be handled properly.
+
+Use at your own risk, mainly useful for debugging.
+
+### TWITCH_MONITOR_IGNORE_SUB_ERRORS
+
+* Required: No
+* Type: bool
+* Default: `false`
+
+Keep going if creation of `stream.online` event subscription fails.
+
+Use at your own risk, mainly useful for debugging.
 
 ### TWITCH_MONITOR_HANDLER
 

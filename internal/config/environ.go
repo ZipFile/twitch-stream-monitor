@@ -63,7 +63,31 @@ func (l *environLoader) Load() (*Config, error) {
 
 	c := Config{}
 
-	c.BroadcasterUserIDS = l.lookupStringList("TWITCH_BROADCASTERS", ",")
+	c.BroadcasterUserIDs = l.lookupStringList("TWITCH_BROADCASTERS", ",")
+	c.KeepExistingSubs, err = l.lookupBool("TWITCH_MONITOR_KEEP_EXISTING_SUBS")
+
+	if err != nil {
+		return nil, err
+	}
+
+	c.KeepNewSubs, err = l.lookupBool("TWITCH_MONITOR_KEEP_NEW_SUBS")
+
+	if err != nil {
+		return nil, err
+	}
+
+	c.IgnoreStartupErrors, err = l.lookupBool("TWITCH_MONITOR_IGNORE_START_ERRORS")
+
+	if err != nil {
+		return nil, err
+	}
+
+	c.IgnoreSubscriptionErrors, err = l.lookupBool("TWITCH_MONITOR_IGNORE_SUB_ERRORS")
+
+	if err != nil {
+		return nil, err
+	}
+
 	c.EventHandlerType = l.LookupEnv("TWITCH_MONITOR_HANDLER")
 	c.CheckTimeout, err = l.lookupDuration("TWITCH_MONITOR_CHECK_TIMEOUT")
 

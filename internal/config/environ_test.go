@@ -44,6 +44,10 @@ func TestNewEnvironLoaderCustom(t *testing.T) {
 func TestEnvironLoaderOK(t *testing.T) {
 	testEnviron := testEnviron{
 		"TWITCH_BROADCASTERS":                      "123,456",
+		"TWITCH_MONITOR_KEEP_EXISTING_SUBS":        "true",
+		"TWITCH_MONITOR_KEEP_NEW_SUBS":             "true",
+		"TWITCH_MONITOR_IGNORE_START_ERRORS":       "true",
+		"TWITCH_MONITOR_IGNORE_SUB_ERRORS":         "true",
 		"TWITCH_MONITOR_HANDLER":                   "noop",
 		"TWITCH_CLIENT_ID":                         "test_client_id",
 		"TWITCH_CLIENT_SECRET":                     "test_client_secret",
@@ -71,8 +75,8 @@ func TestEnvironLoaderOK(t *testing.T) {
 		return
 	}
 
-	if strings.Join(c.BroadcasterUserIDS, ",") != "123,456" {
-		t.Errorf("c.BroadcasterUserIDS: %v; expected: []string{\"123\",\"456\"}", c.BroadcasterUserIDS)
+	if strings.Join(c.BroadcasterUserIDs, ",") != "123,456" {
+		t.Errorf("c.BroadcasterUserIDs: %v; expected: []string{\"123\",\"456\"}", c.BroadcasterUserIDs)
 	}
 
 	if c.Subscription.Port != 9000 {

@@ -73,7 +73,7 @@ func (svc *fakeTwitchOnlineSubscriptionService) Unsubscribe(subId string) error 
 	id, ok := svc.subs[subId]
 
 	if !ok {
-		return tsm.ErrNotSubscribed
+		return tsm.ErrNotFound
 	}
 
 	if strings.Contains(id, " unsubError") {
@@ -111,12 +111,24 @@ func (svc *fakeTwitchOnlineSubscriptionService) Listen(ctx context.Context) (<-c
 }
 
 func TestMonitorCheckFail(t *testing.T) {
-	checkError := errors.New("check failed")
-	handler := &noop.Handler{CheckError: checkError}
-	err := Monitor(context.TODO(), nil, handler, nil, zerolog.Nop())
+	errors := []error{
+		errors.New("check failed"),
+		context.Canceled,
+		context.DeadlineExceeded,
+	}
 
-	if err != checkError {
-		t.Errorf("err: %v; expected: checkError", err)
+	for _, expected := range errors {
+		err := Monitor(
+			context.TODO(),
+			nil,
+			&noop.Handler{CheckError: expected},
+			Settings{},
+			zerolog.Nop(),
+		)
+
+		if err != expected {
+			t.Errorf("err: %v; expected: %v", err, expected)
+		}
 	}
 }
 
@@ -127,7 +139,7 @@ func TestMonitorSubNotFound(t *testing.T) {
 		context.TODO(),
 		svc,
 		handler,
-		[]string{"123", "456"},
+		Settings{UserIDs: []string{"123", "456"}},
 		zerolog.Nop(),
 	)
 
@@ -143,7 +155,7 @@ func TestMonitorSubFail(t *testing.T) {
 		context.TODO(),
 		svc,
 		handler,
-		[]string{"123 subError"},
+		Settings{UserIDs: []string{"123 subError"}},
 		zerolog.Nop(),
 	)
 
@@ -152,7 +164,7 @@ func TestMonitorSubFail(t *testing.T) {
 	}
 }
 
-func TestMonitorDirty(t *testing.T) {
+func TestMonitorKeepExistingSubs(t *testing.T) {
 	handler := &noop.Handler{CheckError: tsm.ErrUncheckable}
 	svc := newFakeTwitchOnlineSubscriptionService("123", "456")
 	ctx, cancel := context.WithCancel(context.Background())
@@ -162,14 +174,13 @@ func TestMonitorDirty(t *testing.T) {
 	go func() {
 		defer cancel()
 		<-svc.started
-		svc.Unsubscribe(svc.sbus["456"])
 	}()
 
 	err := Monitor(
 		ctx,
 		svc,
 		handler,
-		[]string{"123", "456"},
+		Settings{UserIDs: []string{"123", "456"}, KeepExistingSubs: true},
 		zerolog.Nop(),
 	)
 
@@ -178,7 +189,44 @@ func TestMonitorDirty(t *testing.T) {
 	}
 
 	if _, ok := svc.sbus["123"]; !ok {
-		t.Errorf("should not unsubscribe already subscribed channels")
+		t.Errorf("should keep existing subs")
+	}
+
+	if _, ok := svc.sbus["456"]; ok {
+		t.Errorf("should delete new subs")
+	}
+}
+
+func TestMonitorKeepNewSubs(t *testing.T) {
+	handler := &noop.Handler{CheckError: tsm.ErrUncheckable}
+	svc := newFakeTwitchOnlineSubscriptionService("123", "456")
+	ctx, cancel := context.WithCancel(context.Background())
+
+	svc.Subscribe("123")
+
+	go func() {
+		defer cancel()
+		<-svc.started
+	}()
+
+	err := Monitor(
+		ctx,
+		svc,
+		handler,
+		Settings{UserIDs: []string{"123", "456"}, KeepNewSubs: true},
+		zerolog.Nop(),
+	)
+
+	if err != nil {
+		t.Errorf("err: %v; expected: nil", err)
+	}
+
+	if _, ok := svc.sbus["123"]; ok {
+		t.Errorf("should delete existing subs")
+	}
+
+	if _, ok := svc.sbus["456"]; !ok {
+		t.Errorf("should keep new subs")
 	}
 }
 
@@ -192,7 +240,7 @@ func TestMonitorUnsubFail(t *testing.T) {
 		ctx,
 		svc,
 		handler,
-		[]string{"123 unsubError"},
+		Settings{UserIDs: []string{"123 unsubError"}},
 		zerolog.Nop(),
 	)
 
@@ -211,7 +259,7 @@ func TestMonitorListenFail(t *testing.T) {
 		context.TODO(),
 		svc,
 		handler,
-		nil,
+		Settings{},
 		zerolog.Nop(),
 	)
 
@@ -247,11 +295,30 @@ func TestMonitorEventsOK(t *testing.T) {
 		cancel()
 	}()
 
-	err := Monitor(ctx, svc, handler, nil, zerolog.Nop())
+	err := Monitor(ctx, svc, handler, Settings{}, zerolog.Nop())
 
 	if err != nil {
 		t.Errorf("err: %v; expected: nil", err)
 	}
 
 	// TODO: inspect logs to do proper assertion
+}
+
+func TestMonitorIgnoreErrors(t *testing.T) {
+	handler := &noop.Handler{CheckError: testError}
+	svc := newFakeTwitchOnlineSubscriptionService("123 subError")
+	ctx, cancel := context.WithCancel(context.Background())
+	settings := Settings{
+		UserIDs:                  []string{"123 subError"},
+		IgnoreStartupErrors:      true,
+		IgnoreSubscriptionErrors: true,
+	}
+
+	cancel()
+
+	err := Monitor(ctx, svc, handler, settings, zerolog.Nop())
+
+	if err != nil {
+		t.Errorf("err: %v; expected: nil", err)
+	}
 }

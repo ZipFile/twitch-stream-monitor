@@ -16,7 +16,6 @@ type TwitchStreamOnlineEvent struct {
 var ErrCancelled = errors.New("Recording cancelled")
 var ErrUncheckable = errors.New("Unable to check if handler works")
 var ErrAlreadySubscribed = errors.New("Already subscribed")
-var ErrNotSubscribed = errors.New("Not subscribed")
 var ErrNotFound = errors.New("Not found")
 
 type TwitchStreamOnlineEventHandler interface {

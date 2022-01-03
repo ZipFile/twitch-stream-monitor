@@ -45,15 +45,20 @@ type NgrokConfig struct {
 }
 
 type Config struct {
-	BroadcasterUserIDS []string
-	EventHandlerType   string
-	CheckTimeout       time.Duration
-	Twitch             TwitchConfig
-	Subscription       SubscriptionConfig
-	Streamlink         StreamlinkConfig
-	HTTPNotificator    HTTPNotificatorConfig
-	Ngrok              NgrokConfig
-	Log                LoggingConfig
+	BroadcasterUserIDs       []string
+	KeepExistingSubs         bool
+	KeepNewSubs              bool
+	IgnoreStartupErrors      bool
+	IgnoreSubscriptionErrors bool
+
+	EventHandlerType string
+	CheckTimeout     time.Duration
+	Twitch           TwitchConfig
+	Subscription     SubscriptionConfig
+	Streamlink       StreamlinkConfig
+	HTTPNotificator  HTTPNotificatorConfig
+	Ngrok            NgrokConfig
+	Log              LoggingConfig
 }
 
 func (c *Config) GetCallbackURL(context.Context) (string, error) {
@@ -99,7 +104,11 @@ func (a *Config) Merge(b *Config) {
 		return
 	}
 
-	mergeStrList(&a.BroadcasterUserIDS, &b.BroadcasterUserIDS)
+	mergeStrList(&a.BroadcasterUserIDs, &b.BroadcasterUserIDs)
+	mergeBool(&a.KeepExistingSubs, &b.KeepExistingSubs)
+	mergeBool(&a.KeepNewSubs, &b.KeepNewSubs)
+	mergeBool(&a.IgnoreStartupErrors, &b.IgnoreStartupErrors)
+	mergeBool(&a.IgnoreSubscriptionErrors, &b.IgnoreSubscriptionErrors)
 	mergeStr(&a.EventHandlerType, &b.EventHandlerType)
 	mergeDuration(&a.CheckTimeout, &b.CheckTimeout)
 	mergeStr(&a.Twitch.ClientID, &b.Twitch.ClientID)
