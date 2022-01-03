@@ -63,6 +63,14 @@ func (s *service) Subscribe(broadcaster_id string) (string, error) {
 		return "", err
 	}
 
+	if response.StatusCode == 409 {
+		return "", tsm.ErrAlreadySubscribed
+	}
+
+	if response.StatusCode >= 400 {
+		return "", errorFromResponse(&response.ResponseCommon)
+	}
+
 	for _, sub := range response.Data.EventSubSubscriptions {
 		return sub.ID, nil
 	}
@@ -71,9 +79,21 @@ func (s *service) Subscribe(broadcaster_id string) (string, error) {
 }
 
 func (s *service) Unsubscribe(subscription_id string) error {
-	_, err := s.Client.RemoveEventSubSubscription(subscription_id)
+	response, err := s.Client.RemoveEventSubSubscription(subscription_id)
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	if response.StatusCode == 404 {
+		return tsm.ErrNotFound
+	}
+
+	if response.StatusCode >= 400 {
+		return errorFromResponse(&response.ResponseCommon)
+	}
+
+	return nil
 }
 
 func (svc *service) Listen(ctx context.Context) (<-chan tsm.TwitchStreamOnlineEvent, error) {
