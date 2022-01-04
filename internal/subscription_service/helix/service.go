@@ -79,6 +79,10 @@ func (s *service) Subscribe(broadcaster_id string) (string, error) {
 }
 
 func (s *service) Unsubscribe(subscription_id string) error {
+	if subscription_id == "" {
+		return errors.New("Missing subscription id")
+	}
+
 	response, err := s.Client.RemoveEventSubSubscription(subscription_id)
 
 	if err != nil {
