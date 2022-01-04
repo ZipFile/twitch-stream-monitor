@@ -201,6 +201,13 @@ Directory to store stream recordings.
 
 Directory to store stream recordings logs.
 
+### TWITCH_MONITOR_STREAMLINK_CONFIG
+
+* Required: No
+* Type: string
+
+Path to the streamlink configuration file.
+
 ### TWITCH_MONITOR_STREAMLINK_KILL_TIMEOUT
 
 * Required: No
