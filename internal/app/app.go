@@ -25,7 +25,7 @@ import (
 	utils "github.com/ZipFile/twitch-stream-monitor/internal/utils"
 )
 
-type App struct {
+type app struct {
 	Now               func() time.Time
 	Config            *config.Config
 	ConfigLoader      config.Loader
@@ -39,7 +39,7 @@ type App struct {
 	KeepTokenUpToDate bool
 }
 
-func (app *App) loadConfig() error {
+func (app *app) loadConfig() error {
 	if app.Config != nil {
 		return nil
 	}
@@ -57,7 +57,7 @@ func (app *App) loadConfig() error {
 	return nil
 }
 
-func (app *App) initLogger() error {
+func (app *app) initLogger() error {
 	if app.Log != nil {
 		return nil
 	}
@@ -77,7 +77,7 @@ func (app *App) initLogger() error {
 	return nil
 }
 
-func (app *App) initHelixClient() error {
+func (app *app) initHelixClient() error {
 	if app.HelixClient != nil {
 		return nil
 	}
@@ -96,7 +96,7 @@ func (app *App) initHelixClient() error {
 	return nil
 }
 
-func (app *App) initTokenStore() error {
+func (app *app) initTokenStore() error {
 	if app.TokenStore != nil {
 		return nil
 	}
@@ -117,7 +117,7 @@ func (app *App) initTokenStore() error {
 	return nil
 }
 
-func (app *App) initTokenManager() error {
+func (app *app) initTokenManager() error {
 	if app.TokenManager != nil {
 		return nil
 	}
@@ -127,7 +127,7 @@ func (app *App) initTokenManager() error {
 	return nil
 }
 
-func (app *App) loadAppAccessToken() error {
+func (app *app) loadAppAccessToken() error {
 	token, err := app_access_token.Get(
 		app.TokenStore,
 		app.TokenManager,
@@ -143,7 +143,7 @@ func (app *App) loadAppAccessToken() error {
 	return nil
 }
 
-func (app *App) refreshToken(ctx context.Context) {
+func (app *app) refreshToken(ctx context.Context) {
 	// TODO: Make token refresh more reactive
 	ticker := time.NewTicker(time.Hour)
 	defer ticker.Stop()
@@ -162,7 +162,7 @@ func (app *App) refreshToken(ctx context.Context) {
 	}
 }
 
-func (app *App) initCallbackURLGetter() error {
+func (app *app) initCallbackURLGetter() error {
 	if app.CallbackURLGetter != nil {
 		return nil
 	}
@@ -183,7 +183,7 @@ func (app *App) initCallbackURLGetter() error {
 	return nil
 }
 
-func (app *App) initEventListener() error {
+func (app *app) initEventListener() error {
 	if app.EventListener != nil {
 		return nil
 	}
@@ -221,7 +221,7 @@ func (app *App) initEventListener() error {
 	return nil
 }
 
-func (app *App) initEventHandler() error {
+func (app *app) initEventHandler() error {
 	switch app.Config.EventHandlerType {
 	case "streamlink":
 		return app.initStreamlinkEventHandler()
@@ -234,7 +234,7 @@ func (app *App) initEventHandler() error {
 	}
 }
 
-func (app *App) initStreamlinkEventHandler() error {
+func (app *app) initStreamlinkEventHandler() error {
 	if app.EventHandler != nil {
 		return nil
 	}
@@ -257,7 +257,7 @@ func (app *App) initStreamlinkEventHandler() error {
 	return nil
 }
 
-func (app *App) initHTTPNotificatorEventHandler() error {
+func (app *app) initHTTPNotificatorEventHandler() error {
 	if app.EventHandler != nil {
 		return nil
 	}
@@ -271,7 +271,7 @@ func (app *App) initHTTPNotificatorEventHandler() error {
 	return nil
 }
 
-func (app *App) initNoopEventHandler() error {
+func (app *app) initNoopEventHandler() error {
 	if app.EventHandler != nil {
 		return nil
 	}
@@ -281,7 +281,7 @@ func (app *App) initNoopEventHandler() error {
 	return nil
 }
 
-func (app *App) GetCallbackURL(ctx context.Context) (string, error) {
+func (app *app) GetCallbackURL(ctx context.Context) (string, error) {
 	url, err := app.Config.GetCallbackURL(ctx)
 
 	if err != nil {
@@ -297,7 +297,7 @@ func (app *App) GetCallbackURL(ctx context.Context) (string, error) {
 
 type InitFunc func() error
 
-func (app *App) Init() error {
+func (app *app) Init() error {
 	var err error
 
 	initFuncs := []InitFunc{
@@ -321,7 +321,7 @@ func (app *App) Init() error {
 	return nil
 }
 
-func (app *App) Monitor() error {
+func (app *app) Run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	sig := make(chan os.Signal, 1)
 
@@ -355,4 +355,19 @@ func (app *App) Monitor() error {
 		},
 		*app.Log,
 	)
+}
+
+func (app *app) GetTwitchOnlineSubscriptionService() tsm.TwitchOnlineSubscriptionService {
+	return app.EventListener
+}
+
+func (app *app) GetLogger() *zerolog.Logger {
+	return app.Log
+}
+
+func New() App {
+	return &app{
+		Now:          time.Now,
+		ConfigLoader: config.NewEnvironLoader(nil),
+	}
 }
