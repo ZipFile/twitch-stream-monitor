@@ -2,44 +2,18 @@ package cli
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	"github.com/google/subcommands"
 	"github.com/rs/zerolog"
 
-	tsm "github.com/ZipFile/twitch-stream-monitor/internal"
 	tsm_testing "github.com/ZipFile/twitch-stream-monitor/internal/testing"
 )
 
-type testApp struct {
-	init error
-	run  error
-	toss tsm.TwitchOnlineSubscriptionService
-	log  *zerolog.Logger
-}
-
-func (a *testApp) Init() error {
-	return a.init
-}
-
-func (a *testApp) Run() error {
-	return a.run
-}
-
-func (a *testApp) GetTwitchOnlineSubscriptionService() tsm.TwitchOnlineSubscriptionService {
-	return a.toss
-}
-
-func (a *testApp) GetLogger() *zerolog.Logger {
-	return a.log
-}
-
 func TestInitFailure(t *testing.T) {
-	initError := errors.New("test")
 	m := &monitor{
-		app: &testApp{
-			init: initError,
+		app: &tsm_testing.App{
+			InitError: tsm_testing.Error,
 		},
 		loggerFactory: tsm_testing.NoopLoggerFactory,
 	}
@@ -52,12 +26,11 @@ func TestInitFailure(t *testing.T) {
 }
 
 func TestInitFailureWithLogger(t *testing.T) {
-	initError := errors.New("test")
 	log := zerolog.Nop()
 	m := &monitor{
-		app: &testApp{
-			init: initError,
-			log:  &log,
+		app: &tsm_testing.App{
+			InitError: tsm_testing.Error,
+			Log:       &log,
 		},
 		loggerFactory: tsm_testing.PanicLoggerFactory,
 	}
@@ -70,10 +43,9 @@ func TestInitFailureWithLogger(t *testing.T) {
 }
 
 func TestRunFailure(t *testing.T) {
-	runError := errors.New("test")
 	m := &monitor{
-		app: &testApp{
-			run: runError,
+		app: &tsm_testing.App{
+			RunError: tsm_testing.Error,
 		},
 		loggerFactory: tsm_testing.NoopLoggerFactory,
 	}
@@ -87,7 +59,7 @@ func TestRunFailure(t *testing.T) {
 
 func TestRunSucces(t *testing.T) {
 	m := &monitor{
-		app:           &testApp{},
+		app:           &tsm_testing.App{},
 		loggerFactory: tsm_testing.NoopLoggerFactory,
 	}
 
