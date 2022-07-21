@@ -9,6 +9,7 @@ import (
 	"github.com/rs/zerolog"
 
 	tsm "github.com/ZipFile/twitch-stream-monitor/internal"
+	tsm_testing "github.com/ZipFile/twitch-stream-monitor/internal/testing"
 )
 
 type testApp struct {
@@ -34,25 +35,13 @@ func (a *testApp) GetLogger() *zerolog.Logger {
 	return a.log
 }
 
-func noopLoggerFactory() *zerolog.Logger {
-	log := zerolog.Nop()
-
-	return &log
-}
-
-func panicLoggerFactory() *zerolog.Logger {
-	panic("should not be called")
-
-	return nil
-}
-
 func TestInitFailure(t *testing.T) {
 	initError := errors.New("test")
 	m := &monitor{
 		app: &testApp{
 			init: initError,
 		},
-		loggerFactory: noopLoggerFactory,
+		loggerFactory: tsm_testing.NoopLoggerFactory,
 	}
 
 	exitCode := m.Execute(context.Background(), nil)
@@ -70,7 +59,7 @@ func TestInitFailureWithLogger(t *testing.T) {
 			init: initError,
 			log:  &log,
 		},
-		loggerFactory: panicLoggerFactory,
+		loggerFactory: tsm_testing.PanicLoggerFactory,
 	}
 
 	exitCode := m.Execute(context.Background(), nil)
@@ -86,7 +75,7 @@ func TestRunFailure(t *testing.T) {
 		app: &testApp{
 			run: runError,
 		},
-		loggerFactory: noopLoggerFactory,
+		loggerFactory: tsm_testing.NoopLoggerFactory,
 	}
 
 	exitCode := m.Execute(context.Background(), nil)
@@ -99,7 +88,7 @@ func TestRunFailure(t *testing.T) {
 func TestRunSucces(t *testing.T) {
 	m := &monitor{
 		app:           &testApp{},
-		loggerFactory: noopLoggerFactory,
+		loggerFactory: tsm_testing.NoopLoggerFactory,
 	}
 
 	exitCode := m.Execute(context.Background(), nil)
