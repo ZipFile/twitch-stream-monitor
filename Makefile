@@ -13,5 +13,8 @@ imports:
 tests:
 	go test ./... -coverprofile=coverage.out
 
+tests-short:
+	go test -short ./... -coverprofile=coverage.out
+
 coverage:
 	go tool cover -html=coverage.out
