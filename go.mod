@@ -8,4 +8,7 @@ require (
 	github.com/rs/zerolog v1.25.0
 )
 
-require github.com/golang-jwt/jwt v3.2.1+incompatible // indirect
+require (
+	github.com/golang-jwt/jwt v3.2.1+incompatible // indirect
+	github.com/google/subcommands v1.2.0 // indirect
+)

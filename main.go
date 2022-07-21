@@ -1,28 +1,27 @@
 package main
 
 import (
+	"context"
+	"flag"
+	"os"
+
+	"github.com/google/subcommands"
 	_ "github.com/joho/godotenv/autoload"
 
 	tsm_app "github.com/ZipFile/twitch-stream-monitor/internal/app"
+	tsm_cli "github.com/ZipFile/twitch-stream-monitor/internal/cli"
 )
 
 func main() {
 	app := tsm_app.New()
-	err := app.Init()
-	log := app.GetLogger()
 
-	if log == nil {
-		log, _ = tsm_app.NewLogger("trace", false, true)
-	}
+	subcommands.Register(subcommands.HelpCommand(), "")
+	subcommands.Register(subcommands.FlagsCommand(), "")
+	subcommands.Register(subcommands.CommandsCommand(), "")
+	subcommands.Register(tsm_cli.NewMonitor(app), "")
 
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to initialize")
-		return
-	}
+	flag.Parse()
+	ctx := context.Background()
 
-	err = app.Run()
-
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to start")
-	}
+	os.Exit(int(subcommands.Execute(ctx)))
 }
