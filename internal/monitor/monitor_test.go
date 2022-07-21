@@ -3,8 +3,6 @@ package tsm
 import (
 	"context"
 	"errors"
-	"fmt"
-	"strings"
 	"testing"
 	"time"
 
@@ -12,103 +10,8 @@ import (
 
 	tsm "github.com/ZipFile/twitch-stream-monitor/internal"
 	noop "github.com/ZipFile/twitch-stream-monitor/internal/handler/noop"
+	tsm_testing "github.com/ZipFile/twitch-stream-monitor/internal/testing"
 )
-
-type fakeTwitchOnlineSubscriptionService struct {
-	i           int
-	ids         map[string]bool
-	subs        map[string]string
-	sbus        map[string]string
-	events      chan tsm.TwitchStreamOnlineEvent
-	started     chan interface{}
-	listenError error
-}
-
-var testError = errors.New("test error")
-var fakeRecordingError = errors.New("recording failed")
-
-func newFakeTwitchOnlineSubscriptionService(ids ...string) *fakeTwitchOnlineSubscriptionService {
-	knownIds := make(map[string]bool)
-
-	for _, id := range ids {
-		knownIds[id] = true
-	}
-
-	return &fakeTwitchOnlineSubscriptionService{
-		ids:    knownIds,
-		subs:   make(map[string]string),
-		sbus:   make(map[string]string),
-		events: make(chan tsm.TwitchStreamOnlineEvent),
-	}
-}
-
-func (svc *fakeTwitchOnlineSubscriptionService) Subscribe(id string) (string, error) {
-	if strings.Contains(id, " subError") {
-		return "", testError
-	}
-
-	_, ok := svc.ids[id]
-
-	if !ok {
-		return "", tsm.ErrNotFound
-	}
-
-	subId, ok := svc.sbus[id]
-
-	if ok {
-		return subId, tsm.ErrAlreadySubscribed
-	}
-
-	svc.i++
-
-	subId = fmt.Sprintf("sub%d", svc.i)
-
-	svc.subs[subId] = id
-	svc.sbus[id] = subId
-
-	return subId, nil
-}
-
-func (svc *fakeTwitchOnlineSubscriptionService) Unsubscribe(subId string) error {
-	id, ok := svc.subs[subId]
-
-	if !ok {
-		return tsm.ErrNotFound
-	}
-
-	if strings.Contains(id, " unsubError") {
-		return testError
-	}
-
-	delete(svc.subs, subId)
-	delete(svc.sbus, id)
-
-	return nil
-}
-
-func (svc *fakeTwitchOnlineSubscriptionService) Listen(ctx context.Context) (<-chan tsm.TwitchStreamOnlineEvent, error) {
-	if svc.listenError != nil {
-		return nil, svc.listenError
-	}
-
-	svc.started = make(chan interface{})
-	out := make(chan tsm.TwitchStreamOnlineEvent)
-
-	go func() {
-		close(svc.started)
-		for {
-			select {
-			case <-ctx.Done():
-				close(out)
-				return
-			case event := <-svc.events:
-				out <- event
-			}
-		}
-	}()
-
-	return out, nil
-}
 
 func TestMonitorCheckFail(t *testing.T) {
 	errors := []error{
@@ -134,7 +37,7 @@ func TestMonitorCheckFail(t *testing.T) {
 
 func TestMonitorSubNotFound(t *testing.T) {
 	handler := &noop.Handler{CheckError: tsm.ErrUncheckable}
-	svc := newFakeTwitchOnlineSubscriptionService("123")
+	svc := tsm_testing.NewFakeTwitchOnlineSubscriptionService("123")
 	err := Monitor(
 		context.TODO(),
 		svc,
@@ -150,7 +53,7 @@ func TestMonitorSubNotFound(t *testing.T) {
 
 func TestMonitorSubFail(t *testing.T) {
 	handler := &noop.Handler{CheckError: tsm.ErrUncheckable}
-	svc := newFakeTwitchOnlineSubscriptionService("123 subError")
+	svc := tsm_testing.NewFakeTwitchOnlineSubscriptionService("123 subError")
 	err := Monitor(
 		context.TODO(),
 		svc,
@@ -159,21 +62,21 @@ func TestMonitorSubFail(t *testing.T) {
 		zerolog.Nop(),
 	)
 
-	if err != testError {
-		t.Errorf("err: %v; expected: testError", err)
+	if err != tsm_testing.Error {
+		t.Errorf("err: %v; expected: tsm_testing.Error", err)
 	}
 }
 
 func TestMonitorKeepExistingSubs(t *testing.T) {
 	handler := &noop.Handler{CheckError: tsm.ErrUncheckable}
-	svc := newFakeTwitchOnlineSubscriptionService("123", "456")
+	svc := tsm_testing.NewFakeTwitchOnlineSubscriptionService("123", "456")
 	ctx, cancel := context.WithCancel(context.Background())
 
 	svc.Subscribe("123")
 
 	go func() {
 		defer cancel()
-		<-svc.started
+		<-svc.Started
 	}()
 
 	err := Monitor(
@@ -188,25 +91,25 @@ func TestMonitorKeepExistingSubs(t *testing.T) {
 		t.Errorf("err: %v; expected: nil", err)
 	}
 
-	if _, ok := svc.sbus["123"]; !ok {
+	if _, ok := svc.Sbus["123"]; !ok {
 		t.Errorf("should keep existing subs")
 	}
 
-	if _, ok := svc.sbus["456"]; ok {
+	if _, ok := svc.Sbus["456"]; ok {
 		t.Errorf("should delete new subs")
 	}
 }
 
 func TestMonitorKeepNewSubs(t *testing.T) {
 	handler := &noop.Handler{CheckError: tsm.ErrUncheckable}
-	svc := newFakeTwitchOnlineSubscriptionService("123", "456")
+	svc := tsm_testing.NewFakeTwitchOnlineSubscriptionService("123", "456")
 	ctx, cancel := context.WithCancel(context.Background())
 
 	svc.Subscribe("123")
 
 	go func() {
 		defer cancel()
-		<-svc.started
+		<-svc.Started
 	}()
 
 	err := Monitor(
@@ -221,18 +124,18 @@ func TestMonitorKeepNewSubs(t *testing.T) {
 		t.Errorf("err: %v; expected: nil", err)
 	}
 
-	if _, ok := svc.sbus["123"]; ok {
+	if _, ok := svc.Sbus["123"]; ok {
 		t.Errorf("should delete existing subs")
 	}
 
-	if _, ok := svc.sbus["456"]; !ok {
+	if _, ok := svc.Sbus["456"]; !ok {
 		t.Errorf("should keep new subs")
 	}
 }
 
 func TestMonitorUnsubFail(t *testing.T) {
 	handler := &noop.Handler{}
-	svc := newFakeTwitchOnlineSubscriptionService("123 unsubError")
+	svc := tsm_testing.NewFakeTwitchOnlineSubscriptionService("123 unsubError")
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
@@ -253,8 +156,8 @@ func TestMonitorUnsubFail(t *testing.T) {
 
 func TestMonitorListenFail(t *testing.T) {
 	handler := &noop.Handler{}
-	svc := newFakeTwitchOnlineSubscriptionService()
-	svc.listenError = testError
+	svc := tsm_testing.NewFakeTwitchOnlineSubscriptionService()
+	svc.ListenError = tsm_testing.Error
 	err := Monitor(
 		context.TODO(),
 		svc,
@@ -263,30 +166,30 @@ func TestMonitorListenFail(t *testing.T) {
 		zerolog.Nop(),
 	)
 
-	if err != testError {
-		t.Errorf("err: %v; expected: testError", err)
+	if err != tsm_testing.Error {
+		t.Errorf("err: %v; expected: tsm_testing.Error", err)
 	}
 }
 
 func TestMonitorEventsOK(t *testing.T) {
-	handler := &noop.Handler{HandleError: testError}
-	svc := newFakeTwitchOnlineSubscriptionService()
+	handler := &noop.Handler{HandleError: tsm_testing.Error}
+	svc := tsm_testing.NewFakeTwitchOnlineSubscriptionService()
 	ctx, cancel := context.WithCancel(context.Background())
 
 	go func() {
-		svc.events <- tsm.TwitchStreamOnlineEvent{
+		svc.Events <- tsm.TwitchStreamOnlineEvent{
 			UserID:    "1234",
 			UserLogin: "test",
 			UserName:  "Test",
 			StartedAt: time.Date(2021, time.September, 17, 23, 45, 0, 0, time.UTC),
 		}
-		svc.events <- tsm.TwitchStreamOnlineEvent{
+		svc.Events <- tsm.TwitchStreamOnlineEvent{
 			UserID:    "5678",
 			UserLogin: "wait",
 			UserName:  "Wait",
 			StartedAt: time.Date(2021, time.September, 17, 23, 50, 0, 0, time.UTC),
 		}
-		svc.events <- tsm.TwitchStreamOnlineEvent{
+		svc.Events <- tsm.TwitchStreamOnlineEvent{
 			UserID:    "9000",
 			UserLogin: "error",
 			UserName:  "Error",
@@ -305,8 +208,8 @@ func TestMonitorEventsOK(t *testing.T) {
 }
 
 func TestMonitorIgnoreErrors(t *testing.T) {
-	handler := &noop.Handler{CheckError: testError}
-	svc := newFakeTwitchOnlineSubscriptionService("123 subError")
+	handler := &noop.Handler{CheckError: tsm_testing.Error}
+	svc := tsm_testing.NewFakeTwitchOnlineSubscriptionService("123 subError")
 	ctx, cancel := context.WithCancel(context.Background())
 	settings := Settings{
 		UserIDs:                  []string{"123 subError"},
