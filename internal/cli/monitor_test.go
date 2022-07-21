@@ -10,7 +10,7 @@ import (
 	tsm_testing "github.com/ZipFile/twitch-stream-monitor/internal/testing"
 )
 
-func TestInitFailure(t *testing.T) {
+func TestMonitorExecuteInitFailure(t *testing.T) {
 	m := &monitor{
 		app: &tsm_testing.App{
 			InitError: tsm_testing.Error,
@@ -25,7 +25,7 @@ func TestInitFailure(t *testing.T) {
 	}
 }
 
-func TestInitFailureWithLogger(t *testing.T) {
+func TestMonitorExecuteInitFailureWithLogger(t *testing.T) {
 	log := zerolog.Nop()
 	m := &monitor{
 		app: &tsm_testing.App{
@@ -42,7 +42,7 @@ func TestInitFailureWithLogger(t *testing.T) {
 	}
 }
 
-func TestRunFailure(t *testing.T) {
+func TestMonitorExecuteRunFailure(t *testing.T) {
 	m := &monitor{
 		app: &tsm_testing.App{
 			RunError: tsm_testing.Error,
@@ -57,7 +57,7 @@ func TestRunFailure(t *testing.T) {
 	}
 }
 
-func TestRunSucces(t *testing.T) {
+func TestMonitorExecuteOK(t *testing.T) {
 	m := &monitor{
 		app:           &tsm_testing.App{},
 		loggerFactory: tsm_testing.NoopLoggerFactory,

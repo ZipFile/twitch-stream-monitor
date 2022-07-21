@@ -19,6 +19,8 @@ func main() {
 	subcommands.Register(subcommands.FlagsCommand(), "")
 	subcommands.Register(subcommands.CommandsCommand(), "")
 	subcommands.Register(tsm_cli.NewMonitor(app), "")
+	subcommands.Register(tsm_cli.NewSubscribe(app), "")
+	subcommands.Register(tsm_cli.NewUnsubscribe(app), "")
 
 	flag.Parse()
 	ctx := context.Background()
