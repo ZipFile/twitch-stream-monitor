@@ -38,11 +38,6 @@ func (u *unsubscribe) Execute(_ context.Context, _ *flag.FlagSet, _ ...interface
 		return subcommands.ExitFailure
 	}
 
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to initialize")
-		return subcommands.ExitFailure
-	}
-
 	svc := u.app.GetTwitchOnlineSubscriptionService()
 
 	if svc == nil {
@@ -56,9 +51,9 @@ func (u *unsubscribe) Execute(_ context.Context, _ *flag.FlagSet, _ ...interface
 		subLog := log.With().Str("subID", subID).Logger()
 
 		if err == nil {
-			subLog.Error().Err(err).Msg("Failed to unsubscribe")
-		} else {
 			subLog.Info().Msg("Succesfully unsubscribed")
+		} else {
+			subLog.Error().Err(err).Msg("Failed to unsubscribe")
 		}
 	}
 

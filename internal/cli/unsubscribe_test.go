@@ -68,13 +68,17 @@ func TestUnsubscribeExecuteNoSubs(t *testing.T) {
 
 func TestUnsubscribeExecuteOK(t *testing.T) {
 	log := zerolog.Nop()
-	toss := tsm_testing.NewFakeTwitchOnlineSubscriptionService("123", "345 unsubError")
+	toss := tsm_testing.NewFakeTwitchOnlineSubscriptionService("123", "456 unsubError")
+
+	toss.Subscribe("123")
+	toss.Subscribe("456")
+
 	u := &unsubscribe{
 		app: &tsm_testing.App{Log: &log, TOSS: toss},
 		appInitializer: &appInitializer{
 			loggerFactory: tsm_testing.NoopLoggerFactory,
 		},
-		subIDs: []string{toss.Sbus["123"], toss.Sbus["345"]},
+		subIDs: []string{toss.Sbus["123"], toss.Sbus["456"]},
 	}
 
 	exitCode := u.Execute(context.Background(), nil)
