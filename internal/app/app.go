@@ -365,6 +365,14 @@ func (app *app) GetLogger() *zerolog.Logger {
 	return app.Log
 }
 
+func (app *app) GetTokenManager() app_access_token.Manager {
+	return app.TokenManager
+}
+
+func (app *app) GetTokenStore() app_access_token.Store {
+	return app.TokenStore
+}
+
 func New() App {
 	return &app{
 		Now:          time.Now,

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/rs/zerolog"
@@ -12,6 +13,12 @@ func emergencyLoggerFactory() *zerolog.Logger {
 	log := zerolog.New(os.Stdout).Level(zerolog.TraceLevel).With().Timestamp().Logger()
 
 	return &log
+}
+
+func simplePrintln(s string) error {
+	_, err := fmt.Println(s)
+
+	return err
 }
 
 type AppInitializer interface {
