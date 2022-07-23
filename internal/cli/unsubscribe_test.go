@@ -13,31 +13,18 @@ import (
 )
 
 func TestUnsubscribeExecuteInitFailure(t *testing.T) {
-	u := &unsubscribe{
-		app: &tsm_testing.App{
-			InitError: tsm_testing.Error,
-		},
-		loggerFactory: tsm_testing.NoopLoggerFactory,
-	}
-
-	exitCode := u.Execute(context.Background(), nil)
-
-	if exitCode != subcommands.ExitFailure {
-		t.Errorf("exitCode: %v; expected: subcommands.ExitFailure", exitCode)
-	}
-}
-
-func TestUnsubscribeExecuteInitFailureWithLogger(t *testing.T) {
 	log := zerolog.Nop()
-	u := &unsubscribe{
+	i := &unsubscribe{
 		app: &tsm_testing.App{
 			InitError: tsm_testing.Error,
 			Log:       &log,
 		},
-		loggerFactory: tsm_testing.PanicLoggerFactory,
+		appInitializer: &appInitializer{
+			loggerFactory: tsm_testing.NoopLoggerFactory,
+		},
 	}
 
-	exitCode := u.Execute(context.Background(), nil)
+	exitCode := i.Execute(context.Background(), nil)
 
 	if exitCode != subcommands.ExitFailure {
 		t.Errorf("exitCode: %v; expected: subcommands.ExitFailure", exitCode)
@@ -45,9 +32,12 @@ func TestUnsubscribeExecuteInitFailureWithLogger(t *testing.T) {
 }
 
 func TestUnsubscribeExecuteSubsSvcNotInitialized(t *testing.T) {
+	log := zerolog.Nop()
 	u := &unsubscribe{
-		app:           &tsm_testing.App{},
-		loggerFactory: tsm_testing.NoopLoggerFactory,
+		app: &tsm_testing.App{Log: &log},
+		appInitializer: &appInitializer{
+			loggerFactory: tsm_testing.NoopLoggerFactory,
+		},
 	}
 
 	exitCode := u.Execute(context.Background(), nil)
@@ -58,11 +48,15 @@ func TestUnsubscribeExecuteSubsSvcNotInitialized(t *testing.T) {
 }
 
 func TestUnsubscribeExecuteNoSubs(t *testing.T) {
+	log := zerolog.Nop()
 	u := &unsubscribe{
 		app: &tsm_testing.App{
+			Log:  &log,
 			TOSS: tsm_testing.NewFakeTwitchOnlineSubscriptionService(),
 		},
-		loggerFactory: tsm_testing.NoopLoggerFactory,
+		appInitializer: &appInitializer{
+			loggerFactory: tsm_testing.NoopLoggerFactory,
+		},
 	}
 
 	exitCode := u.Execute(context.Background(), nil)
@@ -73,11 +67,14 @@ func TestUnsubscribeExecuteNoSubs(t *testing.T) {
 }
 
 func TestUnsubscribeExecuteOK(t *testing.T) {
+	log := zerolog.Nop()
 	toss := tsm_testing.NewFakeTwitchOnlineSubscriptionService("123", "345 unsubError")
 	u := &unsubscribe{
-		app:           &tsm_testing.App{TOSS: toss},
-		loggerFactory: tsm_testing.NoopLoggerFactory,
-		subIDs:        []string{toss.Sbus["123"], toss.Sbus["345"]},
+		app: &tsm_testing.App{Log: &log, TOSS: toss},
+		appInitializer: &appInitializer{
+			loggerFactory: tsm_testing.NoopLoggerFactory,
+		},
+		subIDs: []string{toss.Sbus["123"], toss.Sbus["345"]},
 	}
 
 	exitCode := u.Execute(context.Background(), nil)

@@ -1,17 +1,42 @@
 package cli
 
 import (
+	"os"
+
 	"github.com/rs/zerolog"
 
 	tsm_app "github.com/ZipFile/twitch-stream-monitor/internal/app"
 )
 
 func emergencyLoggerFactory() *zerolog.Logger {
-	log, err := tsm_app.NewLogger("trace", false, true)
+	log := zerolog.New(os.Stdout).Level(zerolog.TraceLevel).With().Timestamp().Logger()
 
-	if err != nil {
-		panic(err)
+	return &log
+}
+
+type AppInitializer interface {
+	Init(tsm_app.App) (zerolog.Logger, error)
+}
+
+type appInitializer struct {
+	loggerFactory func() *zerolog.Logger
+}
+
+var DefaultAppInitializer AppInitializer = &appInitializer{
+	loggerFactory: emergencyLoggerFactory,
+}
+
+func (ai *appInitializer) Init(app tsm_app.App) (zerolog.Logger, error) {
+	err := app.Init()
+	log := app.GetLogger()
+
+	if log == nil {
+		log = ai.loggerFactory()
 	}
 
-	return log
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to initialize")
+	}
+
+	return *log, err
 }

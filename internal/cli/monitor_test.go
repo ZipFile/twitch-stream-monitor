@@ -11,28 +11,15 @@ import (
 )
 
 func TestMonitorExecuteInitFailure(t *testing.T) {
-	m := &monitor{
-		app: &tsm_testing.App{
-			InitError: tsm_testing.Error,
-		},
-		loggerFactory: tsm_testing.NoopLoggerFactory,
-	}
-
-	exitCode := m.Execute(context.Background(), nil)
-
-	if exitCode != subcommands.ExitFailure {
-		t.Errorf("exitCode: %v; expected: subcommands.ExitFailure", exitCode)
-	}
-}
-
-func TestMonitorExecuteInitFailureWithLogger(t *testing.T) {
 	log := zerolog.Nop()
 	m := &monitor{
 		app: &tsm_testing.App{
 			InitError: tsm_testing.Error,
 			Log:       &log,
 		},
-		loggerFactory: tsm_testing.PanicLoggerFactory,
+		appInitializer: &appInitializer{
+			loggerFactory: tsm_testing.NoopLoggerFactory,
+		},
 	}
 
 	exitCode := m.Execute(context.Background(), nil)
@@ -43,11 +30,15 @@ func TestMonitorExecuteInitFailureWithLogger(t *testing.T) {
 }
 
 func TestMonitorExecuteRunFailure(t *testing.T) {
+	log := zerolog.Nop()
 	m := &monitor{
 		app: &tsm_testing.App{
 			RunError: tsm_testing.Error,
+			Log:      &log,
 		},
-		loggerFactory: tsm_testing.NoopLoggerFactory,
+		appInitializer: &appInitializer{
+			loggerFactory: tsm_testing.NoopLoggerFactory,
+		},
 	}
 
 	exitCode := m.Execute(context.Background(), nil)
@@ -58,9 +49,12 @@ func TestMonitorExecuteRunFailure(t *testing.T) {
 }
 
 func TestMonitorExecuteOK(t *testing.T) {
+	log := zerolog.Nop()
 	m := &monitor{
-		app:           &tsm_testing.App{},
-		loggerFactory: tsm_testing.NoopLoggerFactory,
+		app: &tsm_testing.App{Log: &log},
+		appInitializer: &appInitializer{
+			loggerFactory: tsm_testing.NoopLoggerFactory,
+		},
 	}
 
 	exitCode := m.Execute(context.Background(), nil)

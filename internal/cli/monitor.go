@@ -5,20 +5,19 @@ import (
 	"flag"
 
 	"github.com/google/subcommands"
-	"github.com/rs/zerolog"
 
 	tsm_app "github.com/ZipFile/twitch-stream-monitor/internal/app"
 )
 
 type monitor struct {
-	app           tsm_app.App
-	loggerFactory func() *zerolog.Logger
+	app            tsm_app.App
+	appInitializer AppInitializer
 }
 
 func NewMonitor(app tsm_app.App) subcommands.Command {
 	return &monitor{
-		app:           app,
-		loggerFactory: emergencyLoggerFactory,
+		app:            app,
+		appInitializer: DefaultAppInitializer,
 	}
 }
 
@@ -28,15 +27,9 @@ func (*monitor) Usage() string              { return "monitor" }
 func (m *monitor) SetFlags(f *flag.FlagSet) {}
 
 func (m *monitor) Execute(_ context.Context, _ *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
-	err := m.app.Init()
-	log := m.app.GetLogger()
-
-	if log == nil {
-		log = m.loggerFactory()
-	}
+	log, err := m.appInitializer.Init(m.app)
 
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to initialize")
 		return subcommands.ExitFailure
 	}
 

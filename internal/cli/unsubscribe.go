@@ -5,21 +5,20 @@ import (
 	"flag"
 
 	"github.com/google/subcommands"
-	"github.com/rs/zerolog"
 
 	tsm_app "github.com/ZipFile/twitch-stream-monitor/internal/app"
 )
 
 type unsubscribe struct {
-	app           tsm_app.App
-	loggerFactory func() *zerolog.Logger
-	subIDs        []string
+	app            tsm_app.App
+	appInitializer AppInitializer
+	subIDs         []string
 }
 
 func NewUnsubscribe(app tsm_app.App) subcommands.Command {
 	return &unsubscribe{
-		app:           app,
-		loggerFactory: emergencyLoggerFactory,
+		app:            app,
+		appInitializer: DefaultAppInitializer,
 	}
 }
 
@@ -33,11 +32,10 @@ func (u *unsubscribe) SetFlags(f *flag.FlagSet) {
 }
 
 func (u *unsubscribe) Execute(_ context.Context, _ *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
-	err := u.app.Init()
-	log := u.app.GetLogger()
+	log, err := u.appInitializer.Init(u.app)
 
-	if log == nil {
-		log = u.loggerFactory()
+	if err != nil {
+		return subcommands.ExitFailure
 	}
 
 	if err != nil {

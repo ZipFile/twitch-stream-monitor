@@ -13,28 +13,15 @@ import (
 )
 
 func TestSubscribeExecuteInitFailure(t *testing.T) {
-	s := &subscribe{
-		app: &tsm_testing.App{
-			InitError: tsm_testing.Error,
-		},
-		loggerFactory: tsm_testing.NoopLoggerFactory,
-	}
-
-	exitCode := s.Execute(context.Background(), nil)
-
-	if exitCode != subcommands.ExitFailure {
-		t.Errorf("exitCode: %v; expected: subcommands.ExitFailure", exitCode)
-	}
-}
-
-func TestSubscribeExecuteInitFailureWithLogger(t *testing.T) {
 	log := zerolog.Nop()
 	s := &subscribe{
 		app: &tsm_testing.App{
 			InitError: tsm_testing.Error,
 			Log:       &log,
 		},
-		loggerFactory: tsm_testing.PanicLoggerFactory,
+		appInitializer: &appInitializer{
+			loggerFactory: tsm_testing.NoopLoggerFactory,
+		},
 	}
 
 	exitCode := s.Execute(context.Background(), nil)
@@ -45,9 +32,12 @@ func TestSubscribeExecuteInitFailureWithLogger(t *testing.T) {
 }
 
 func TestSubscribeExecuteSubsSvcNotInitialized(t *testing.T) {
+	log := zerolog.Nop()
 	s := &subscribe{
-		app:           &tsm_testing.App{},
-		loggerFactory: tsm_testing.NoopLoggerFactory,
+		app: &tsm_testing.App{Log: &log},
+		appInitializer: &appInitializer{
+			loggerFactory: tsm_testing.NoopLoggerFactory,
+		},
 	}
 
 	exitCode := s.Execute(context.Background(), nil)
@@ -58,11 +48,15 @@ func TestSubscribeExecuteSubsSvcNotInitialized(t *testing.T) {
 }
 
 func TestSubscribeExecuteNoSubs(t *testing.T) {
+	log := zerolog.Nop()
 	s := &subscribe{
 		app: &tsm_testing.App{
+			Log:  &log,
 			TOSS: tsm_testing.NewFakeTwitchOnlineSubscriptionService(),
 		},
-		loggerFactory: tsm_testing.NoopLoggerFactory,
+		appInitializer: &appInitializer{
+			loggerFactory: tsm_testing.NoopLoggerFactory,
+		},
 	}
 
 	exitCode := s.Execute(context.Background(), nil)
@@ -73,11 +67,15 @@ func TestSubscribeExecuteNoSubs(t *testing.T) {
 }
 
 func TestSubscribeExecuteOK(t *testing.T) {
+	log := zerolog.Nop()
 	s := &subscribe{
 		app: &tsm_testing.App{
+			Log:  &log,
 			TOSS: tsm_testing.NewFakeTwitchOnlineSubscriptionService("123", "345 subError"),
 		},
-		loggerFactory:  tsm_testing.NoopLoggerFactory,
+		appInitializer: &appInitializer{
+			loggerFactory: tsm_testing.NoopLoggerFactory,
+		},
 		broadcasterIDs: []string{"123", "456", "789"},
 	}
 
