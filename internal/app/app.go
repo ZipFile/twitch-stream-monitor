@@ -22,6 +22,8 @@ import (
 	streamlink_handler "github.com/ZipFile/twitch-stream-monitor/internal/handler/streamlink"
 	monitor "github.com/ZipFile/twitch-stream-monitor/internal/monitor"
 	helix_subscription_service "github.com/ZipFile/twitch-stream-monitor/internal/subscription_service/helix"
+	username_resolver "github.com/ZipFile/twitch-stream-monitor/internal/username_resolver"
+	helix_username_resolver "github.com/ZipFile/twitch-stream-monitor/internal/username_resolver/helix"
 	utils "github.com/ZipFile/twitch-stream-monitor/internal/utils"
 )
 
@@ -34,6 +36,7 @@ type app struct {
 	EventHandler      tsm.TwitchStreamOnlineEventHandler
 	EventListener     tsm.TwitchOnlineSubscriptionService
 	CallbackURLGetter tsm.CallbackURLGetter
+	UsernameResolver  username_resolver.UsernameResolver
 	Log               *zerolog.Logger
 	HelixClient       *helix.Client
 	KeepTokenUpToDate bool
@@ -183,6 +186,16 @@ func (app *app) initCallbackURLGetter() error {
 	return nil
 }
 
+func (app *app) initUsernameResolver() error {
+	if app.UsernameResolver != nil {
+		return nil
+	}
+
+	app.UsernameResolver = helix_username_resolver.New(app.HelixClient, *app.Log)
+
+	return nil
+}
+
 func (app *app) initEventListener() error {
 	if app.EventListener != nil {
 		return nil
@@ -308,6 +321,7 @@ func (app *app) Init() error {
 		app.initTokenManager,
 		app.loadAppAccessToken,
 		app.initCallbackURLGetter,
+		app.initUsernameResolver,
 		app.initEventListener,
 		app.initEventHandler,
 	}
@@ -371,6 +385,10 @@ func (app *app) GetTokenManager() app_access_token.Manager {
 
 func (app *app) GetTokenStore() app_access_token.Store {
 	return app.TokenStore
+}
+
+func (app *app) GetUsernameResolver() username_resolver.UsernameResolver {
+	return app.UsernameResolver
 }
 
 func New() App {
