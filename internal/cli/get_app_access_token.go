@@ -30,8 +30,8 @@ func (*getAppAccessToken) Name() string { return "get-app-access-token" }
 func (*getAppAccessToken) Synopsis() string {
 	return "Retrieve fresh app access token to use in API queries."
 }
-func (*getAppAccessToken) Usage() string                 { return "get-app-access-token" }
-func (gaat *getAppAccessToken) SetFlags(f *flag.FlagSet) {}
+func (*getAppAccessToken) Usage() string          { return "get-app-access-token" }
+func (*getAppAccessToken) SetFlags(*flag.FlagSet) {}
 
 func (gaat *getAppAccessToken) Execute(_ context.Context, _ *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	log, err := gaat.appInitializer.Init(gaat.app)

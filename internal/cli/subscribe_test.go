@@ -11,6 +11,36 @@ import (
 	tsm_testing "github.com/ZipFile/twitch-stream-monitor/internal/testing"
 )
 
+func TestSubscribeName(t *testing.T) {
+	var s subscribe
+	name := s.Name()
+	expected := "subscribe"
+
+	if name != expected {
+		t.Errorf("name: %s; expected: %s", name, expected)
+	}
+}
+
+func TestSubscribeSynopsis(t *testing.T) {
+	var s subscribe
+	synopsis := s.Synopsis()
+	expected := "Subscribe to stream.online events for given twitch users."
+
+	if synopsis != expected {
+		t.Errorf("synopsis: %s; expected: %s", synopsis, expected)
+	}
+}
+
+func TestSubscribeUsage(t *testing.T) {
+	var s subscribe
+	usage := s.Usage()
+	expected := "subscribe BROADCASTER_ID ..."
+
+	if usage != expected {
+		t.Errorf("usage: %s; expected: %s", usage, expected)
+	}
+}
+
 func TestSubscribeExecuteInitFailure(t *testing.T) {
 	log := zerolog.Nop()
 	s := &subscribe{

@@ -11,6 +11,36 @@ import (
 	tsm_testing "github.com/ZipFile/twitch-stream-monitor/internal/testing"
 )
 
+func TestUnsubscribeName(t *testing.T) {
+	var u unsubscribe
+	name := u.Name()
+	expected := "unsubscribe"
+
+	if name != expected {
+		t.Errorf("name: %s; expected: %s", name, expected)
+	}
+}
+
+func TestUnsubscribeSynopsis(t *testing.T) {
+	var u unsubscribe
+	synopsis := u.Synopsis()
+	expected := "Unsubscribe from stream.online by subscription id."
+
+	if synopsis != expected {
+		t.Errorf("synopsis: %s; expected: %s", synopsis, expected)
+	}
+}
+
+func TestUnsubscribeUsage(t *testing.T) {
+	var u unsubscribe
+	usage := u.Usage()
+	expected := "unsubscribe SUB_ID ..."
+
+	if usage != expected {
+		t.Errorf("usage: %s; expected: %s", usage, expected)
+	}
+}
+
 func TestUnsubscribeExecuteInitFailure(t *testing.T) {
 	log := zerolog.Nop()
 	i := &unsubscribe{

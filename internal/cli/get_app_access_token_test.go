@@ -12,6 +12,42 @@ import (
 	tsm_testing "github.com/ZipFile/twitch-stream-monitor/internal/testing"
 )
 
+func TestGetAppAccessTokenName(t *testing.T) {
+	var gaat getAppAccessToken
+	name := gaat.Name()
+	expected := "get-app-access-token"
+
+	if name != expected {
+		t.Errorf("name: %s; expected: %s", name, expected)
+	}
+}
+
+func TestGetAppAccessTokenSynopsis(t *testing.T) {
+	var gaat getAppAccessToken
+	synopsis := gaat.Synopsis()
+	expected := "Retrieve fresh app access token to use in API queries."
+
+	if synopsis != expected {
+		t.Errorf("synopsis: %s; expected: %s", synopsis, expected)
+	}
+}
+
+func TestGetAppAccessTokenUsage(t *testing.T) {
+	var gaat getAppAccessToken
+	usage := gaat.Usage()
+	expected := "get-app-access-token"
+
+	if usage != expected {
+		t.Errorf("usage: %s; expected: %s", usage, expected)
+	}
+}
+
+func TestGetAppAccessTokenSetFlags(t *testing.T) {
+	var gaat getAppAccessToken
+
+	gaat.SetFlags(nil)
+}
+
 func TestGetAppAccessTokenExecuteInitFailure(t *testing.T) {
 	log := zerolog.Nop()
 	m := &getAppAccessToken{
