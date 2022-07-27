@@ -21,10 +21,10 @@ func NewMonitor(app tsm_app.App) subcommands.Command {
 	}
 }
 
-func (*monitor) Name() string               { return "monitor" }
-func (*monitor) Synopsis() string           { return "Launch Twitch Stream Monitor." }
-func (*monitor) Usage() string              { return "monitor" }
-func (m *monitor) SetFlags(f *flag.FlagSet) {}
+func (*monitor) Name() string           { return "monitor" }
+func (*monitor) Synopsis() string       { return "Launch Twitch Stream Monitor." }
+func (*monitor) Usage() string          { return "monitor" }
+func (*monitor) SetFlags(*flag.FlagSet) {}
 
 func (m *monitor) Execute(_ context.Context, _ *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	log, err := m.appInitializer.Init(m.app)
