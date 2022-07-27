@@ -12,7 +12,6 @@ import (
 type subscribe struct {
 	app            tsm_app.App
 	appInitializer AppInitializer
-	broadcasterIDs []string
 }
 
 func NewSubscribe(app tsm_app.App) subcommands.Command {
@@ -26,12 +25,10 @@ func (*subscribe) Name() string { return "subscribe" }
 func (*subscribe) Synopsis() string {
 	return "Subscribe to stream.online events for given twitch users."
 }
-func (*subscribe) Usage() string { return "subscribe BROADCASTER_ID ..." }
-func (s *subscribe) SetFlags(f *flag.FlagSet) {
-	s.broadcasterIDs = f.Args()
-}
+func (*subscribe) Usage() string          { return "subscribe BROADCASTER_ID ..." }
+func (*subscribe) SetFlags(*flag.FlagSet) {}
 
-func (s *subscribe) Execute(_ context.Context, _ *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
+func (s *subscribe) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	log, err := s.appInitializer.Init(s.app)
 
 	if err != nil {
@@ -46,14 +43,14 @@ func (s *subscribe) Execute(_ context.Context, _ *flag.FlagSet, _ ...interface{}
 		return subcommands.ExitFailure
 	}
 
-	for _, broadcasterID := range s.broadcasterIDs {
+	for _, broadcasterID := range f.Args() {
 		subID, err := svc.Subscribe(broadcasterID)
 		subLog := log.With().Str("subID", subID).Str("broadcasterID", broadcasterID).Logger()
 
 		if err == nil {
-			subLog.Error().Err(err).Msg("Failed to subscribe")
-		} else {
 			subLog.Info().Msg("Succesfully subscribed")
+		} else {
+			subLog.Error().Err(err).Msg("Failed to subscribe")
 		}
 	}
 

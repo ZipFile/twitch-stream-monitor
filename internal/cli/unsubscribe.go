@@ -26,12 +26,10 @@ func (*unsubscribe) Name() string { return "unsubscribe" }
 func (*unsubscribe) Synopsis() string {
 	return "Unsubscribe from stream.online by subscription id."
 }
-func (*unsubscribe) Usage() string { return "unsubscribe SUB_ID ..." }
-func (u *unsubscribe) SetFlags(f *flag.FlagSet) {
-	u.subIDs = f.Args()
-}
+func (*unsubscribe) Usage() string          { return "unsubscribe SUB_ID ..." }
+func (*unsubscribe) SetFlags(*flag.FlagSet) {}
 
-func (u *unsubscribe) Execute(_ context.Context, _ *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
+func (u *unsubscribe) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	log, err := u.appInitializer.Init(u.app)
 
 	if err != nil {
@@ -46,7 +44,7 @@ func (u *unsubscribe) Execute(_ context.Context, _ *flag.FlagSet, _ ...interface
 		return subcommands.ExitFailure
 	}
 
-	for _, subID := range u.subIDs {
+	for _, subID := range f.Args() {
 		err := svc.Unsubscribe(subID)
 		subLog := log.With().Str("subID", subID).Logger()
 
