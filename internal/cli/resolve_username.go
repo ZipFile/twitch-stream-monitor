@@ -27,8 +27,8 @@ func (*resolveUsername) Name() string { return "resolve-username" }
 func (*resolveUsername) Synopsis() string {
 	return "Find twitch user id by its username."
 }
-func (*resolveUsername) Usage() string               { return "resolve-username USERNAME" }
-func (ru *resolveUsername) SetFlags(f *flag.FlagSet) {}
+func (*resolveUsername) Usage() string          { return "resolve-username USERNAME" }
+func (*resolveUsername) SetFlags(*flag.FlagSet) {}
 
 func (ru *resolveUsername) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	log, err := ru.appInitializer.Init(ru.app)
