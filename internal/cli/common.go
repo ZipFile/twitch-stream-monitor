@@ -10,7 +10,7 @@ import (
 )
 
 func emergencyLoggerFactory() *zerolog.Logger {
-	log := zerolog.New(os.Stdout).Level(zerolog.TraceLevel).With().Timestamp().Logger()
+	log := zerolog.New(os.Stderr).Level(zerolog.TraceLevel).With().Timestamp().Logger()
 
 	return &log
 }
