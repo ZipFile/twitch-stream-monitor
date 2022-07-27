@@ -3,7 +3,6 @@ package cli
 import (
 	"context"
 	"flag"
-	"reflect"
 	"testing"
 
 	"github.com/google/subcommands"
@@ -48,6 +47,7 @@ func TestSubscribeExecuteSubsSvcNotInitialized(t *testing.T) {
 }
 
 func TestSubscribeExecuteNoSubs(t *testing.T) {
+	f := flag.NewFlagSet("test", flag.ContinueOnError)
 	log := zerolog.Nop()
 	s := &subscribe{
 		app: &tsm_testing.App{
@@ -59,7 +59,7 @@ func TestSubscribeExecuteNoSubs(t *testing.T) {
 		},
 	}
 
-	exitCode := s.Execute(context.Background(), nil)
+	exitCode := s.Execute(context.Background(), f)
 
 	if exitCode != subcommands.ExitSuccess {
 		t.Errorf("exitCode: %v; expected: subcommands.ExitSuccess", exitCode)
@@ -67,6 +67,7 @@ func TestSubscribeExecuteNoSubs(t *testing.T) {
 }
 
 func TestSubscribeExecuteOK(t *testing.T) {
+	f := flag.NewFlagSet("test", flag.ContinueOnError)
 	log := zerolog.Nop()
 	s := &subscribe{
 		app: &tsm_testing.App{
@@ -76,26 +77,13 @@ func TestSubscribeExecuteOK(t *testing.T) {
 		appInitializer: &appInitializer{
 			loggerFactory: tsm_testing.NoopLoggerFactory,
 		},
-		broadcasterIDs: []string{"123", "456", "789"},
 	}
 
-	exitCode := s.Execute(context.Background(), nil)
+	f.Parse([]string{"123", "456", "789"})
+
+	exitCode := s.Execute(context.Background(), f)
 
 	if exitCode != subcommands.ExitSuccess {
 		t.Errorf("exitCode: %v; expected: subcommands.ExitSuccess", exitCode)
-	}
-}
-
-func TestSubscribeSetFlags(t *testing.T) {
-	f := flag.NewFlagSet("test", flag.PanicOnError)
-
-	f.Parse([]string{"123", "456"})
-
-	s := &subscribe{}
-
-	s.SetFlags(f)
-
-	if !reflect.DeepEqual(s.broadcasterIDs, []string{"123", "456"}) {
-		t.Errorf("s.broadcasterIDs: %v: expected: [\"123\", \"456\"]", s.broadcasterIDs)
 	}
 }
