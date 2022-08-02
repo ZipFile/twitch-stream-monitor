@@ -5,7 +5,7 @@ it introduces extra friction when running tool locally. In order to reduce amoun
 
 Upon startup, the tool will try to access local instance of the Ngrok looking for the HTTPS tunnels to port specified in `TWITCH_MONITOR_PORT` (29177 by default). If found, it will be used as a callback URL.
 
-Ngrok search location can be overridden by `TWITCH_MONITOR_NGROK_TUNNELS_URL` env variable. It must point to Ngrok's `/api/tunnels` API endpoint.
+Ngrok search location can be overridden by `TWITCH_MONITOR_NGROK_TUNNELS_URL` env variable. It must point to Ngrok's `/api/tunnels` API endpoint (e.g. `http://localhost:4040/api/tunnels`).
 
 If there is multiple tunnels for a single port and protocol, the first will be used. `TWITCH_MONITOR_NGROK_TUNNEL_NAME` env variable can be used to limit search by tunnel name.
 
