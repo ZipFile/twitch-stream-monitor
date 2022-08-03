@@ -23,6 +23,7 @@ func main() {
 	subcommands.Register(tsm_cli.NewUnsubscribe(app), "")
 	subcommands.Register(tsm_cli.NewGetAppAccessToken(app), "")
 	subcommands.Register(tsm_cli.NewResolveUsername(app), "")
+	subcommands.Register(tsm_cli.NewList(app), "")
 
 	flag.Parse()
 	ctx := context.Background()

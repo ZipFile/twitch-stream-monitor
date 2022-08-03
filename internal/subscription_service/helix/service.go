@@ -115,3 +115,54 @@ func (svc *service) Listen(ctx context.Context) (<-chan tsm.TwitchStreamOnlineEv
 
 	return nil, err
 }
+
+func (s *service) list(after string) ([]helix.EventSubSubscription, string, error) {
+	response, err := s.Client.GetEventSubSubscriptions(&helix.EventSubSubscriptionsParams{
+		Type:  helix.EventSubTypeStreamOnline,
+		After: after,
+	})
+
+	if err != nil {
+		return nil, "", err
+	}
+
+	return response.Data.EventSubSubscriptions, response.Data.Pagination.Cursor, nil
+}
+
+func (s *service) List() ([]tsm.TwitchStreamOnlineEventSubscription, error) {
+	var after string
+	var subs []helix.EventSubSubscription
+	var err error
+	var out []tsm.TwitchStreamOnlineEventSubscription
+
+	for {
+		s.Log.Trace().Str("after", after).Msg("Fetching subs")
+
+		subs, after, err = s.list(after)
+
+		if err != nil {
+			return nil, err
+		}
+
+		s.Log.Trace().Int("subs_count", len(subs)).Msg("Fetched subs")
+
+		if out == nil {
+			out = make([]tsm.TwitchStreamOnlineEventSubscription, 0, len(subs))
+		}
+
+		for _, sub := range subs {
+			out = append(out, tsm.TwitchStreamOnlineEventSubscription{
+				ID:          sub.ID,
+				Status:      sub.Status,
+				UserID:      sub.Condition.BroadcasterUserID,
+				CallbackURL: sub.Transport.Callback,
+			})
+		}
+
+		if len(subs) == 0 || after == "" {
+			break
+		}
+	}
+
+	return out, nil
+}

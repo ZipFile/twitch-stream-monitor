@@ -13,6 +13,13 @@ type TwitchStreamOnlineEvent struct {
 	StartedAt time.Time `json:"started_at"`
 }
 
+type TwitchStreamOnlineEventSubscription struct {
+	ID          string `json:"id"`
+	Status      string `json:"status"`
+	UserID      string `json:"user_id"`
+	CallbackURL string `json:"callback_url"`
+}
+
 var ErrCancelled = errors.New("Recording cancelled")
 var ErrUncheckable = errors.New("Unable to check if handler works")
 var ErrAlreadySubscribed = errors.New("Already subscribed")
@@ -28,6 +35,7 @@ type TwitchOnlineSubscriptionService interface {
 	Subscribe(string) (string, error)
 	Unsubscribe(string) error
 	Listen(context.Context) (<-chan TwitchStreamOnlineEvent, error)
+	List() ([]TwitchStreamOnlineEventSubscription, error)
 }
 
 type CallbackURLGetter interface {

@@ -17,6 +17,7 @@ type FakeTwitchOnlineSubscriptionService struct {
 	Events      chan tsm.TwitchStreamOnlineEvent
 	Started     chan interface{}
 	ListenError error
+	ListError   error
 }
 
 var Error = errors.New("test error")
@@ -103,4 +104,19 @@ func (svc *FakeTwitchOnlineSubscriptionService) Listen(ctx context.Context) (<-c
 	}()
 
 	return out, nil
+}
+
+func (svc *FakeTwitchOnlineSubscriptionService) List() ([]tsm.TwitchStreamOnlineEventSubscription, error) {
+	out := make([]tsm.TwitchStreamOnlineEventSubscription, 0, len(svc.Subs))
+
+	for userId, subId := range svc.Subs {
+		out = append(out, tsm.TwitchStreamOnlineEventSubscription{
+			ID:          subId,
+			Status:      "active",
+			UserID:      userId,
+			CallbackURL: "http://localhost",
+		})
+	}
+
+	return out, svc.ListError
 }
