@@ -27,3 +27,31 @@ func TestOrStrB(t *testing.T) {
 		t.Errorf("value: %v; expected: \"b\"", value)
 	}
 }
+
+func TestObfuscateUrl(t *testing.T) {
+	tests := []struct {
+		value    string
+		expected string
+	}{
+		{
+			value:    "http://example.com",
+			expected: "http://example.com",
+		},
+		{
+			value:    "https://43bb-1-2-3-4.ngrok.io/test",
+			expected: "***",
+		},
+		{
+			value:    "http://1.2.3.4/test",
+			expected: "***",
+		},
+	}
+
+	for _, test := range tests {
+		value := ObfuscateUrl(test.value)
+
+		if value != test.expected {
+			t.Errorf("value: %v; expected: %v", value, test.expected)
+		}
+	}
+}

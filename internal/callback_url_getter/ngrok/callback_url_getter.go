@@ -10,6 +10,7 @@ import (
 	"github.com/rs/zerolog"
 
 	tsm "github.com/ZipFile/twitch-stream-monitor/internal"
+	tsm_utils "github.com/ZipFile/twitch-stream-monitor/internal/utils"
 )
 
 var defaultTunnelsURL = url.URL{
@@ -30,7 +31,10 @@ type tunnel struct {
 }
 
 func (t *tunnel) MarshalZerologObject(e *zerolog.Event) {
-	e.Str("public_url", t.PublicUrl).Str("name", t.Name).Str("proto", t.Proto).Str("addr", t.Config.Addr)
+	e.Str("public_url", tsm_utils.ObfuscateUrl(t.PublicUrl)).
+		Str("name", t.Name).
+		Str("proto", t.Proto).
+		Str("addr", t.Config.Addr)
 }
 
 type tunnelsResponse struct {

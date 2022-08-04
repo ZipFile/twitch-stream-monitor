@@ -214,7 +214,7 @@ func (app *app) initEventListener() error {
 	if callbackUrl == "" {
 		return errors.New("Callback URL was not found")
 	} else {
-		app.Log.Info().Msgf("Using %s as a callback URL", callbackUrl)
+		app.Log.Info().Msgf("Using %s as a callback URL", utils.ObfuscateUrl(callbackUrl))
 	}
 
 	svc, err := helix_subscription_service.New(

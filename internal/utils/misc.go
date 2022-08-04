@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -15,4 +16,14 @@ func OrStr(a, b string) string {
 		return b
 	}
 	return a
+}
+
+var ipv4Regexp = regexp.MustCompile(`\d+[-\.]\d+[-\.]\d+[-\.]\d+`)
+
+func ObfuscateUrl(url string) string {
+	if ipv4Regexp.MatchString(url) {
+		return "***"
+	}
+
+	return url
 }
