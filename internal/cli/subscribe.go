@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"flag"
+	"regexp"
 
 	"github.com/google/subcommands"
 
@@ -28,7 +29,10 @@ func (*subscribe) Synopsis() string {
 func (*subscribe) Usage() string          { return "subscribe BROADCASTER_ID ..." }
 func (*subscribe) SetFlags(*flag.FlagSet) {}
 
+var numericIdRegexp = regexp.MustCompile(`^\d+$`)
+
 func (s *subscribe) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
+	var err error
 	log, err := s.appInitializer.Init(s.app)
 
 	if err != nil {
@@ -43,7 +47,25 @@ func (s *subscribe) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}
 		return subcommands.ExitFailure
 	}
 
+	ur := s.app.GetUsernameResolver()
+
+	if ur == nil {
+		log.Error().Msg("Username resolver failed to initialized")
+
+		return subcommands.ExitFailure
+	}
+
 	for _, broadcasterID := range f.Args() {
+		if !numericIdRegexp.MatchString(broadcasterID) {
+			broadcasterID, err = ur.Resolve(broadcasterID)
+		}
+
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to resolve username")
+
+			return subcommands.ExitFailure
+		}
+
 		subID, err := svc.Subscribe(broadcasterID)
 		subLog := log.With().Str("subID", subID).Str("broadcasterID", broadcasterID).Logger()
 

@@ -76,6 +76,25 @@ func TestSubscribeExecuteSubsSvcNotInitialized(t *testing.T) {
 	}
 }
 
+func TestSubscribeUsernameExecutGetUsernameResolverFailure(t *testing.T) {
+	log := zerolog.Nop()
+	s := &subscribe{
+		app: &tsm_testing.App{
+			Log:  &log,
+			TOSS: tsm_testing.NewFakeTwitchOnlineSubscriptionService(),
+		},
+		appInitializer: &appInitializer{
+			loggerFactory: tsm_testing.NoopLoggerFactory,
+		},
+	}
+
+	exitCode := s.Execute(context.Background(), nil)
+
+	if exitCode != subcommands.ExitFailure {
+		t.Errorf("exitCode: %v; expected: subcommands.ExitFailure", exitCode)
+	}
+}
+
 func TestSubscribeExecuteNoSubs(t *testing.T) {
 	f := flag.NewFlagSet("test", flag.ContinueOnError)
 	log := zerolog.Nop()
@@ -83,6 +102,7 @@ func TestSubscribeExecuteNoSubs(t *testing.T) {
 		app: &tsm_testing.App{
 			Log:  &log,
 			TOSS: tsm_testing.NewFakeTwitchOnlineSubscriptionService(),
+			UR:   &tsm_testing.UsernameResolver{},
 		},
 		appInitializer: &appInitializer{
 			loggerFactory: tsm_testing.NoopLoggerFactory,
@@ -102,18 +122,48 @@ func TestSubscribeExecuteOK(t *testing.T) {
 	s := &subscribe{
 		app: &tsm_testing.App{
 			Log:  &log,
-			TOSS: tsm_testing.NewFakeTwitchOnlineSubscriptionService("123", "345 subError"),
+			TOSS: tsm_testing.NewFakeTwitchOnlineSubscriptionService("123", "456 subError", "789"),
+			UR: &tsm_testing.UsernameResolver{
+				Usernames: map[string]string{
+					"test": "789",
+				},
+			},
 		},
 		appInitializer: &appInitializer{
 			loggerFactory: tsm_testing.NoopLoggerFactory,
 		},
 	}
 
-	f.Parse([]string{"123", "456", "789"})
+	f.Parse([]string{"123", "456", "test", "000"})
 
 	exitCode := s.Execute(context.Background(), f)
 
 	if exitCode != subcommands.ExitSuccess {
 		t.Errorf("exitCode: %v; expected: subcommands.ExitSuccess", exitCode)
+	}
+}
+
+func TestSubscribeExecutGetUsernameResolverFailure(t *testing.T) {
+	f := flag.NewFlagSet("test", flag.ContinueOnError)
+	log := zerolog.Nop()
+	s := &subscribe{
+		app: &tsm_testing.App{
+			Log:  &log,
+			TOSS: tsm_testing.NewFakeTwitchOnlineSubscriptionService(),
+			UR: &tsm_testing.UsernameResolver{
+				Error: tsm_testing.Error,
+			},
+		},
+		appInitializer: &appInitializer{
+			loggerFactory: tsm_testing.NoopLoggerFactory,
+		},
+	}
+
+	f.Parse([]string{"test"})
+
+	exitCode := s.Execute(context.Background(), f)
+
+	if exitCode != subcommands.ExitFailure {
+		t.Errorf("exitCode: %v; expected: subcommands.ExitFailure", exitCode)
 	}
 }
