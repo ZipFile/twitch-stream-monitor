@@ -64,7 +64,16 @@ func (s *service) Subscribe(broadcaster_id string) (string, error) {
 	}
 
 	if response.StatusCode == 409 {
-		return "", tsm.ErrAlreadySubscribed
+		subID, err := s.findSub(broadcaster_id)
+
+		if err != nil {
+			s.Log.Error().
+				Err(err).
+				Str("broadcaster_id", broadcaster_id).
+				Msg("Failed to find subscription id for user")
+		}
+
+		return subID, tsm.ErrAlreadySubscribed
 	}
 
 	if response.StatusCode >= 400 {
@@ -116,7 +125,7 @@ func (svc *service) Listen(ctx context.Context) (<-chan tsm.TwitchStreamOnlineEv
 	return nil, err
 }
 
-func (s *service) list(after string) ([]helix.EventSubSubscription, string, error) {
+func (s *service) list(userID, after string) ([]helix.EventSubSubscription, string, error) {
 	response, err := s.Client.GetEventSubSubscriptions(&helix.EventSubSubscriptionsParams{
 		Type:  helix.EventSubTypeStreamOnline,
 		After: after,
@@ -125,6 +134,8 @@ func (s *service) list(after string) ([]helix.EventSubSubscription, string, erro
 	if err != nil {
 		return nil, "", err
 	}
+
+	// TODO: https://github.com/nicklaw5/helix/pull/139
 
 	return response.Data.EventSubSubscriptions, response.Data.Pagination.Cursor, nil
 }
@@ -138,7 +149,7 @@ func (s *service) List() ([]tsm.TwitchStreamOnlineEventSubscription, error) {
 	for {
 		s.Log.Trace().Str("after", after).Msg("Fetching subs")
 
-		subs, after, err = s.list(after)
+		subs, after, err = s.list("", after)
 
 		if err != nil {
 			return nil, err
@@ -165,4 +176,30 @@ func (s *service) List() ([]tsm.TwitchStreamOnlineEventSubscription, error) {
 	}
 
 	return out, nil
+}
+
+func (s *service) findSub(userID string) (string, error) {
+	var after string
+	var subs []helix.EventSubSubscription
+	var err error
+
+	for {
+		subs, after, err = s.list(userID, after)
+
+		if err != nil {
+			return "", err
+		}
+
+		for _, sub := range subs {
+			if sub.Transport.Callback == s.CallbackURL {
+				return sub.ID, nil
+			}
+		}
+
+		if len(subs) == 0 || after == "" {
+			break
+		}
+	}
+
+	return "", nil
 }
