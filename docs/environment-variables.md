@@ -45,7 +45,7 @@ set TWITCH_MONITOR_STREAMLINK_PATH=C:\Program Files (x86)\Streamlink\bin\streaml
 set TWITCH_MONITOR_STREAMLINK_FILE_DIR=D:\twitch\recordings
 set TWITCH_MONITOR_STREAMLINK_LOG_DIR=D:\twitch\logs
 set TWITCH_MONITOR_LOG_PRETTY=true
-start twitch-stream-monitor.exe
+start twitch-stream-monitor.exe monitor
 ```
 
 ## List

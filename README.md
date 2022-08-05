@@ -2,6 +2,7 @@
 
 * [Installation and Usage](#installation-and-usage)
 * [Installation and Usage (Windows)](#installation-and-usage-windows)
+* [Command Line Interface](docs/cli.md)
 * [Getting Credentials](docs/credentials.md)
 * [Webhook Configuration](docs/webhook.md)
 * [Environment Variables](docs/environment-variables.md)
@@ -12,7 +13,7 @@
 
 1. `go install github.com/ZipFile/twitch-stream-monitor@latest`
 2. Create a `.env` file as descibed in [Environment Variables](docs/environment-variables.md#.env).
-3. Run `twitch-stream-monitor`.
+3. Run `twitch-stream-monitor monitor`.
 
 ## Installation and Usage (Windows)
 
