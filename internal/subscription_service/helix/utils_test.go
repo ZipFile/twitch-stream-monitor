@@ -3,7 +3,7 @@ package helix
 import (
 	"testing"
 
-	"github.com/nicklaw5/helix"
+	"github.com/nicklaw5/helix/v2"
 )
 
 func TestErrorFromResponseNil(t *testing.T) {

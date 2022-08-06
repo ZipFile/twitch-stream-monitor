@@ -3,7 +3,7 @@ package helix
 import (
 	"fmt"
 
-	"github.com/nicklaw5/helix"
+	"github.com/nicklaw5/helix/v2"
 )
 
 func errorFromResponse(response *helix.ResponseCommon) error {

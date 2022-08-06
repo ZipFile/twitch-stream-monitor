@@ -3,7 +3,7 @@ package helix
 import (
 	"time"
 
-	"github.com/nicklaw5/helix"
+	"github.com/nicklaw5/helix/v2"
 	"github.com/rs/zerolog"
 
 	"github.com/ZipFile/twitch-stream-monitor/internal/app_access_token"

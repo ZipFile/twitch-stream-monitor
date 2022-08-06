@@ -1,7 +1,7 @@
 package helix_username_resolver
 
 import (
-	"github.com/nicklaw5/helix"
+	"github.com/nicklaw5/helix/v2"
 	"github.com/rs/zerolog"
 
 	"github.com/ZipFile/twitch-stream-monitor/internal/username_resolver"

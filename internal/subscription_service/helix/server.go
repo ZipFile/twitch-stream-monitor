@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/nicklaw5/helix"
+	"github.com/nicklaw5/helix/v2"
 	"github.com/rs/zerolog"
 
 	tsm "github.com/ZipFile/twitch-stream-monitor/internal"
