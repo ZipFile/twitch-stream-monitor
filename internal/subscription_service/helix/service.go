@@ -126,16 +126,23 @@ func (svc *service) Listen(ctx context.Context) (<-chan tsm.TwitchStreamOnlineEv
 }
 
 func (s *service) list(userID, after string) ([]helix.EventSubSubscription, string, error) {
-	response, err := s.Client.GetEventSubSubscriptions(&helix.EventSubSubscriptionsParams{
-		Type:  helix.EventSubTypeStreamOnline,
-		After: after,
-	})
+	params := helix.EventSubSubscriptionsParams{After: after}
+
+	if userID == "" {
+		params.UserID = userID
+	} else {
+		params.Type = helix.EventSubTypeStreamOnline
+	}
+
+	response, err := s.Client.GetEventSubSubscriptions(&params)
 
 	if err != nil {
 		return nil, "", err
 	}
 
-	// TODO: https://github.com/nicklaw5/helix/pull/139
+	if response.StatusCode >= 400 {
+		return nil, "", errorFromResponse(&response.ResponseCommon)
+	}
 
 	return response.Data.EventSubSubscriptions, response.Data.Pagination.Cursor, nil
 }
@@ -191,7 +198,7 @@ func (s *service) findSub(userID string) (string, error) {
 		}
 
 		for _, sub := range subs {
-			if sub.Transport.Callback == s.CallbackURL {
+			if sub.Type == helix.EventSubTypeStreamOnline && sub.Transport.Callback == s.CallbackURL {
 				return sub.ID, nil
 			}
 		}
