@@ -8,6 +8,7 @@
 * [Environment Variables](docs/environment-variables.md)
 * [Development](docs/development.md)
 * [Ngrok Support](docs/ngrok.md)
+* [systemd user service](docs/systemd-user-service.md)
 
 ## Installation and Usage
 
