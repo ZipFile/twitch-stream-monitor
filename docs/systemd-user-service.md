@@ -2,6 +2,13 @@
 
 After installing twitch-stream-monitor you might want to have the service start automatically. You can use a systemd unit, that runs in the user context.
 
+## Allow user services to run without user logged in
+According to https://wiki.archlinux.org/title/Systemd/User#Automatic_start-up_of_systemd_user_instances you need to enable the possibility to have user services running, even when the user is not logged in:
+
+```sh
+sudo loginctl enable-linger _username_
+```
+
 ## Create necessary directory
 In the user context of the user running twitch-stream-monitor create the following directory:
 ```sh
